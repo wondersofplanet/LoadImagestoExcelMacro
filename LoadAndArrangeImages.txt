@@ -15,17 +15,20 @@ Sub LoadAndArrangeImages()
     Dim i As Integer
     Dim folderDialog As FileDialog
     Dim selectedFolder As Variant
-    Dim columnCounter As Integer ' Counter for columns
-    Dim rowCounter As Integer ' Counter for rows
+    Dim desktopPath As String
+    
+    ' Get desktop path
+    desktopPath = Environ("USERPROFILE") & "\Desktop\"
     
     ' Create a FileDialog object as a Folder Picker dialog box
     Set folderDialog = Application.FileDialog(msoFileDialogFolderPicker)
     
+    ' Set initial folder to Desktop
+    folderDialog.InitialFileName = desktopPath
+    
     ' Show the Folder Picker dialog box
     If folderDialog.Show = -1 Then ' If user selects a folder
         selectedFolder = folderDialog.SelectedItems(1) & "\"
-        ' Append "\" at the end of the selected folder path
-        ' to ensure it ends with a backslash
         ' Assign the selected folder path to imagePath
         imagePath = selectedFolder & "\"
     Else
@@ -62,6 +65,8 @@ Sub LoadAndArrangeImages()
     MsgBox "Number of files found: " & imgCounter
     
     ' Reset counters
+    Dim columnCounter As Integer ' Counter for columns
+    Dim rowCounter As Integer ' Counter for rows
     columnCounter = 1
     rowCounter = 1
     
@@ -101,5 +106,3 @@ Sub LoadAndArrangeImages()
         End If
     Next i
 End Sub
-
-
