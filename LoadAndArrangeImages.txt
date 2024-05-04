@@ -1,0 +1,82 @@
+Sub LoadAndArrangeImages()
+    Dim imagePath As String
+    Dim imgName As String
+    Dim imgExtension As String
+    Dim imgCounter As Integer
+    Dim imgTop As Integer
+    Dim imgLeft As Integer
+    Dim imgWidth As Integer
+    Dim imgHeight As Integer
+    Dim imgShape As Shape
+    Dim columnOffset As Integer
+    Dim rowSpacing As Integer
+    Dim maxColumns As Integer
+    Dim maxRows As Integer
+    Dim files() As String
+    Dim i As Integer
+    
+    ' Clear the contents of the current worksheet
+    ActiveSheet.Cells.ClearContents
+    
+    ' Set the folder path
+    imagePath = "C:\Users\HOME\Desktop\cowexcel\"
+    
+    ' Set initial position and spacing
+    imgTop = 10
+    imgLeft = 10
+    columnOffset = 220 ' Width of one column
+    rowSpacing = 20 ' Adjust this value to set row spacing
+    maxColumns = 3 ' Number of columns
+    maxRows = 100 ' Maximum number of rows
+    
+    ' Get all files in the folder
+    imgCounter = 0
+    imgName = Dir(imagePath & "*.*")
+    Do While imgName <> ""
+        If Right(imgName, 3) = "jpg" Or Right(imgName, 3) = "png" Then
+            imgCounter = imgCounter + 1
+            ReDim Preserve files(1 To imgCounter)
+            files(imgCounter) = imgName
+        End If
+        imgName = Dir
+    Loop
+    
+    ' Sort files by name
+    For i = 1 To imgCounter - 1
+        For j = i + 1 To imgCounter
+            If UCase(files(i)) > UCase(files(j)) Then
+                imgName = files(i)
+                files(i) = files(j)
+                files(j) = imgName
+            End If
+        Next j
+    Next i
+    
+    ' Loop through each file in sorted order
+    For i = 1 To imgCounter
+        ' Insert the image as a shape
+        Set imgShape = ActiveSheet.Shapes.AddPicture(Filename:=imagePath & files(i), _
+                                                     LinkToFile:=msoFalse, _
+                                                     SaveWithDocument:=msoTrue, _
+                                                     Left:=imgLeft, Top:=imgTop, Width:=-1, Height:=-1)
+        
+        ' Get image dimensions
+        imgWidth = imgShape.Width
+        imgHeight = imgShape.Height
+        
+        ' Position the next image
+        imgLeft = imgLeft + imgWidth + columnOffset ' Move to the next column
+        
+        ' Check if we exceed the maximum number of columns
+        If (i Mod maxColumns) = 0 Then
+            ' Reset left position and move to the next row
+            imgLeft = 10
+            imgTop = imgTop + imgHeight + rowSpacing
+        End If
+        
+        ' Exit loop if we reach the maximum number of rows
+        If imgTop + imgHeight > maxRows * rowSpacing Then
+            Exit For
+        End If
+    Next i
+End Sub
