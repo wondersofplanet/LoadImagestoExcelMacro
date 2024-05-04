@@ -1,7 +1,6 @@
 Sub LoadAndArrangeImages()
     Dim imagePath As String
     Dim imgName As String
-    Dim imgExtension As String
     Dim imgCounter As Integer
     Dim imgTop As Integer
     Dim imgLeft As Integer
@@ -14,12 +13,30 @@ Sub LoadAndArrangeImages()
     Dim maxRows As Integer
     Dim files() As String
     Dim i As Integer
+    Dim folderDialog As FileDialog
+    Dim selectedFolder As Variant
+    Dim columnCounter As Integer ' Counter for columns
+    Dim rowCounter As Integer ' Counter for rows
+    
+    ' Create a FileDialog object as a Folder Picker dialog box
+    Set folderDialog = Application.FileDialog(msoFileDialogFolderPicker)
+    
+    ' Show the Folder Picker dialog box
+    If folderDialog.Show = -1 Then ' If user selects a folder
+        selectedFolder = folderDialog.SelectedItems(1) & "\"
+        ' Append "\" at the end of the selected folder path
+        ' to ensure it ends with a backslash
+        ' Assign the selected folder path to imagePath
+        imagePath = selectedFolder & "\"
+    Else
+        ' User canceled the dialog box, exit the subroutine
+        Exit Sub
+    End If
     
     ' Clear the contents of the current worksheet
+    On Error Resume Next ' Ignore errors when clearing contents
     ActiveSheet.Cells.ClearContents
-    
-    ' Set the folder path
-    imagePath = "C:\Users\HOME\Desktop\cowexcel\"
+    On Error GoTo 0 ' Turn error handling back on
     
     ' Set initial position and spacing
     imgTop = 10
@@ -38,21 +55,17 @@ Sub LoadAndArrangeImages()
             ReDim Preserve files(1 To imgCounter)
             files(imgCounter) = imgName
         End If
-        imgName = Dir
+        imgName = Dir ' Get next file
     Loop
     
-    ' Sort files by name
-    For i = 1 To imgCounter - 1
-        For j = i + 1 To imgCounter
-            If UCase(files(i)) > UCase(files(j)) Then
-                imgName = files(i)
-                files(i) = files(j)
-                files(j) = imgName
-            End If
-        Next j
-    Next i
+    ' Display the count of files found in the folder
+    MsgBox "Number of files found: " & imgCounter
     
-    ' Loop through each file in sorted order
+    ' Reset counters
+    columnCounter = 1
+    rowCounter = 1
+    
+    ' Loop through each file and insert images into worksheet
     For i = 1 To imgCounter
         ' Insert the image as a shape
         Set imgShape = ActiveSheet.Shapes.AddPicture(Filename:=imagePath & files(i), _
@@ -64,19 +77,29 @@ Sub LoadAndArrangeImages()
         imgWidth = imgShape.Width
         imgHeight = imgShape.Height
         
-        ' Position the next image
-        imgLeft = imgLeft + imgWidth + columnOffset ' Move to the next column
+        ' Move to the next column
+        imgLeft = imgLeft + imgWidth + columnOffset
         
-        ' Check if we exceed the maximum number of columns
-        If (i Mod maxColumns) = 0 Then
-            ' Reset left position and move to the next row
+        ' Increment column counter
+        columnCounter = columnCounter + 1
+        
+        ' If maximum number of columns reached, move to the next row
+        If columnCounter > maxColumns Then
+            ' Reset left position
             imgLeft = 10
+            ' Move to the next row
             imgTop = imgTop + imgHeight + rowSpacing
+            ' Reset column counter
+            columnCounter = 1
+            ' Increment row counter
+            rowCounter = rowCounter + 1
         End If
         
-        ' Exit loop if we reach the maximum number of rows
-        If imgTop + imgHeight > maxRows * rowSpacing Then
+        ' If maximum number of rows reached, exit loop
+        If rowCounter > maxRows Then
             Exit For
         End If
     Next i
 End Sub
+
+
